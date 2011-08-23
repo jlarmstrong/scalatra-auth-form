@@ -5,39 +5,49 @@ import scalate.ScalateSupport
 import net.liftweb.mongodb._
 import net.liftweb.json._
 import net.liftweb.mongodb.record.MongoRecord
+import javax.servlet._
 
 
-
-class MyScalatraServlet extends ScalatraServlet with ScalateSupport 
+class MyScalatraServlet extends ScalatraServlet 
  with AuthenticationSupport
+ with FlashMapSupport
  {
   
-  before() {
+  override def initialize(config: ServletConfig): Unit = {
     MongoDB.defineDb(DefaultMongoIdentifier, MongoAddress(MongoHost("127.0.0.1", 27017), "scalatra-auth"))
+    
+    super.initialize(config)
   }
-  after() {
-    MongoDB.close
+  
+  before() {
+    if (!isAuthenticated) {
+      scentry.authenticate('RememberMe)
+    }
   }
+
 
   get("/") {
     <html>
       <body>
         <h1>Hello, world!</h1>
-        Say <a href="hello-scalate">hello to Scalate</a>.
+        Say <a href="/login">hello to Scalate</a>.
         Test Auth <a href="register">Register</a>.
       </body>
     </html>
   }
 
   get("/login") {
+    redirectIfAuthenticated
+    
     contentType = "text/html"
 
     <html>
     <body>
       <h1>Login</h1>
       <form method="post" action="/login">
-      <div><label>User</label><input name="userName" value="test@test.com" /></div>
-      <div><label>password</label><input name="password" /></div>
+      <div><label>User:</label><input type="text" name="userName" value="test@test.com" /></div>
+      <div><label>Password:</label><input type="password" name="password" /></div>
+      <div><label>Remember Me:</label><input type="checkbox" name="rememberMe" value="true" /></div>
       <div><input type="submit" value="submit" /></div>
       </form>
     </body>
@@ -45,19 +55,25 @@ class MyScalatraServlet extends ScalatraServlet with ScalateSupport
   }
 
   post("/login") {
-    //basicAuth
+    scentry.authenticate('UserPassword)
     
-    redirect("/loggedin")
+    if (isAuthenticated) {
+      redirect("/loggedin")
+    }else{
+      flash += ("error" -> "login failed")
+      redirect("/login")
+    }
   }
 
   get("/loggedin") {
-    //basicAuth
+    redirectIfNotAuthenticated
+    
     contentType = "text/html"
     
     <html>
       <body>
       <h1>Hello, world!</h1>
-      Welcome you are logged in.
+      Welcome {user.username} you are logged in. <a href="/logout">Logout</a>
       </body>
     </html>
   }
@@ -77,8 +93,6 @@ class MyScalatraServlet extends ScalatraServlet with ScalateSupport
     </html>	
   }
 
-
-
   post("/register") {
     val u = User.createRecord
       .username(params("userName"))
@@ -91,7 +105,7 @@ class MyScalatraServlet extends ScalatraServlet with ScalateSupport
   }
   
   get("/logout/?") {
-    //logOut
+    logOut
     
     redirect("/logout_step")
   }
@@ -102,18 +116,6 @@ class MyScalatraServlet extends ScalatraServlet with ScalateSupport
   }
 
   notFound {
-    // If no route matches, then try to render a Scaml template
-    val templateBase = requestPath match {
-      case s if s.endsWith("/") => s + "index"
-      case s => s
-    }
-    val templatePath = "/WEB-INF/scalate/templates/" + templateBase + ".scaml"
-    servletContext.getResource(templatePath) match {
-      case url: URL => 
-        contentType = "text/html"
-        templateEngine.layout(templatePath)
-      case _ => 
-        response.sendError(404)
-    } 
+          response.sendError(404)
   }
 }

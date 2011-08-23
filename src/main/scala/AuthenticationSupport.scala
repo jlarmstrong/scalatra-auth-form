@@ -3,13 +3,16 @@ import org.scalatra.ScalatraKernel
 import org.scalatra.auth.strategy.{BasicAuthStrategy, BasicAuthSupport}
 import org.scalatra.auth.{ScentrySupport, ScentryConfig}
 import org.scalatra.{CookieSupport, ScalatraKernel, CookieOptions, Cookie}
+import org.slf4j.{LoggerFactory}
 
 trait AuthenticationSupport extends ScentrySupport[User] with BasicAuthSupport[User] { self: ScalatraKernel =>
 
-  val realm = "com.example"
+  val logger = LoggerFactory.getLogger(getClass)
+
+  val realm = "example"
   protected def contextPath = request.getContextPath
 
-  protected def fromSession = { case id: String => User.find("_id",id) openOr null  }
+  protected def fromSession = { case id: String => User.find(id) openOr null  }
   protected def toSession   = { case usr: User => usr.id.toString() }
 
   protected val scentryConfig = (new ScentryConfig {}).asInstanceOf[ScentryConfiguration]
@@ -30,12 +33,15 @@ trait AuthenticationSupport extends ScentrySupport[User] with BasicAuthSupport[U
 
   def redirectIfAuthenticated {
     if (isAuthenticated) {
+      logger.info("Auth: isAuth redirect["+scentryConfig.returnTo+"]")
       redirect(scentryConfig.returnTo)
     }
   }
 
   def redirectIfNotAuthenticated {
     if (!isAuthenticated) {
+      logger.info("Auth: not isAuth redirect["+scentryConfig.returnTo+"]")
+      logger.info("Auth: not isAuth redirect["+scentryConfig.returnTo+"]")
       redirect(scentryConfig.login)
     }
   }

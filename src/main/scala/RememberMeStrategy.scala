@@ -4,7 +4,7 @@ import org.scalatra.{CookieSupport, ScalatraKernel, CookieOptions, Cookie}
 import net.liftweb.common._
 import javax.servlet.http.{Cookie ⇒ ServletCookie}
 import net.liftweb.common.{Box, Empty, Failure, Full}
-
+import org.slf4j.{LoggerFactory}
 
 
 /**
@@ -13,6 +13,7 @@ import net.liftweb.common.{Box, Empty, Failure, Full}
 class RememberMeStrategy(protected val app: ScalatraKernel with CookieSupport)
   extends ScentryStrategy[User]
 {
+  val logger = LoggerFactory.getLogger(getClass)
 
   val COOKIE_KEY = "remember_me"
   private val oneWeek = 7 * 24 * 3600
@@ -30,7 +31,7 @@ class RememberMeStrategy(protected val app: ScalatraKernel with CookieSupport)
       (winningStrategy == 'UserPassword && checkbox2boolean(app.params.get("remember_me").getOrElse("").toString))) {
 
       val token = user.rememberMe.value
-
+      logger.info("rememberMe: set Cookie["+token+"]")
       app.response.addHeader("Set-Cookie",
         Cookie(COOKIE_KEY, token)(CookieOptions(secure = false, maxAge = oneWeek, httpOnly = true)).toCookieString)
     }
@@ -51,6 +52,7 @@ class RememberMeStrategy(protected val app: ScalatraKernel with CookieSupport)
         None
       }
       case Some(usr) ⇒ {
+        logger.info("rememberMe: validated["+token+"]")
         Some(usr)
       }
     }
@@ -61,6 +63,7 @@ class RememberMeStrategy(protected val app: ScalatraKernel with CookieSupport)
    * Clears the remember-me cookie for the specified user.
    */
   override def beforeLogout(user: User) = {
+    logger.info("rememberMe: beforeLogout")
     if (user != null){
       user.forgetMe
     }
