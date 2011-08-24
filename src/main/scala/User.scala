@@ -23,11 +23,15 @@ class User extends MongoRecord[User] with MongoId[User] {
   def userIdAsString: String = id.toString
 
   def login(u: String, p: String): Option[User] = {
-    val usr = User.findAll(("username" -> u), ("password" -> p))
-    val tmp = Some(usr.first)
-    updateRememberMe(tmp)
-
-    tmp
+    val usr = User.findAll(("username" -> u) ~ ("password" -> p))
+    if(usr.length > 0){
+      val tmp = Some(usr.first)
+      updateRememberMe(tmp)
+      // return
+      tmp
+    }else{
+      None
+    }
   }
 
   def updateRememberMe(u: Option[User]) {
@@ -36,7 +40,7 @@ class User extends MongoRecord[User] with MongoId[User] {
         case None => None
         case Some(usr) => if(usr.rememberMe.value.isEmpty){ 
           User.update( ("_id" -> usr.id.toString),("$set"->("rememberMe" -> generateToken(dt.toString + usr.id.toString) ) ) ) 
-          }
+        }
     }
   }
 

@@ -15,7 +15,7 @@ class RememberMeStrategy(protected val app: ScalatraKernel with CookieSupport)
 {
   val logger = LoggerFactory.getLogger(getClass)
 
-  val COOKIE_KEY = "remember_me"
+  val COOKIE_KEY = "rememberMe"
   private val oneWeek = 7 * 24 * 3600
 
   override def isValid = {
@@ -26,9 +26,9 @@ class RememberMeStrategy(protected val app: ScalatraKernel with CookieSupport)
    * After authentication, sets the remember-me cookie on the response.
    */
   override def afterAuthenticate(winningStrategy: Symbol, user: User) = {
-
+    logger.info("rememberMe: afterAuth fired")
     if (winningStrategy == 'RememberMe ||
-      (winningStrategy == 'UserPassword && checkbox2boolean(app.params.get("remember_me").getOrElse("").toString))) {
+      (winningStrategy == 'UserPassword && checkbox2boolean(app.params.get("rememberMe").getOrElse("").toString))) {
 
       val token = user.rememberMe.value
       logger.info("rememberMe: set Cookie["+token+"]")
@@ -46,6 +46,8 @@ class RememberMeStrategy(protected val app: ScalatraKernel with CookieSupport)
       case Some(v) => v.toString
       case None => ""
     }
+
+    logger.info("rememberMe: trying for token["+token+"]")
 
     User.validateRememberToken(token) match {
       case None => {

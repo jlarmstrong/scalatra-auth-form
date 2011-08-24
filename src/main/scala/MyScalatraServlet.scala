@@ -11,6 +11,7 @@ import javax.servlet._
 class MyScalatraServlet extends ScalatraServlet 
  with AuthenticationSupport
  with FlashMapSupport
+ with ScalateSupport 
  {
   
   override def initialize(config: ServletConfig): Unit = {
@@ -24,7 +25,6 @@ class MyScalatraServlet extends ScalatraServlet
       scentry.authenticate('RememberMe)
     }
   }
-
 
   get("/") {
     <html>
@@ -44,6 +44,7 @@ class MyScalatraServlet extends ScalatraServlet
     <html>
     <body>
       <h1>Login</h1>
+      <div style="color: #F00;">{flash.getOrElse("error", "")}</div>
       <form method="post" action="/login">
       <div><label>User:</label><input type="text" name="userName" value="test@test.com" /></div>
       <div><label>Password:</label><input type="password" name="password" /></div>
