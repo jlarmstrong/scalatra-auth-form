@@ -23,7 +23,8 @@ trait AuthenticationSupport extends ScentrySupport[User] with BasicAuthSupport[U
   }
 
   override protected def configureScentry = {
-    /* scentry.unauthenticated {
+    /* Not supported
+    scentry.unauthenticated {
       scentry.strategies.get('UserPassword) foreach {
         _.unauthenticated()
       }
@@ -42,7 +43,6 @@ trait AuthenticationSupport extends ScentrySupport[User] with BasicAuthSupport[U
 
   def redirectIfNotAuthenticated {
     if (!isAuthenticated) {
-      logger.info("Auth: not isAuth redirect["+scentryConfig.returnTo+"]")
       logger.info("Auth: not isAuth redirect["+scentryConfig.returnTo+"]")
       redirect(scentryConfig.login)
     }
