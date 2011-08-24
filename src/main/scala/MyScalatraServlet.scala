@@ -30,7 +30,7 @@ class MyScalatraServlet extends ScalatraServlet
     <html>
       <body>
         <h1>Hello, world!</h1>
-        Say <a href="/login">hello to Scalate</a>.
+        Say <a href="/login">hello to Scalatra</a>.
         Test Auth <a href="register">Register</a>.
       </body>
     </html>
