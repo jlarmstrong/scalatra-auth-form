@@ -13,4 +13,5 @@ The original source code has been forked to modify dependencies and setup the en
 Run the following commands and navigate to [localhost:8080]
 
   $ sbt
+  
   $ container:start
